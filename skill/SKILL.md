@@ -1,5 +1,5 @@
 ---
-name: sph-transcript
+name: wx-channels-transcript
 description: "把微信视频号的视频变成逐字稿。当用户贴出 weixin.qq.com/sph/... 这样的视频号链接，或说「扒这条视频号的逐字稿」「提取视频号文案」「这条视频讲了什么，给我文字稿」时使用。也支持本地音频/视频文件。会自动扫描本机可用的语音识别后端（云端优先、本地兜底），推荐最快路径并解释原因。"
 description_zh: 视频号链接 → 逐字稿（自动探测 ASR 后端 + 云端优先 + 零依赖）
 version: "0.3.0"
