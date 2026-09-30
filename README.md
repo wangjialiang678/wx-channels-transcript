@@ -47,16 +47,41 @@ wx-channels-transcript "https://weixin.qq.com/sph/xxxx"
 
 **代价**：依赖腾讯的非公开接口，且需要元宝登录态。
 
+## 平台支持
+
+| 功能 | macOS | Windows | Linux |
+|---|---|---|---|
+| 视频号解析 / 转写 / 下载 / 落盘 | ✅ | ✅ | ✅ |
+| **自动读取浏览器登录态** | ✅ | ❌ | ❌ |
+| **用 `--cookie` 手工提供登录态** | ✅ | ✅ | ✅ |
+| Go 版交叉编译 | ✅ | ✅ | ✅ |
+
+**Windows / Linux 用户：工具完全可用，只是要手工提供一次登录态。**
+
+自动读取之所以只做了 macOS，**不是漏做，而是三家的 cookie 加密方式完全不同**，改路径解决不了：
+
+| 平台 | cookie 加密 | 状态 |
+|---|---|---|
+| macOS | 钥匙串（Chrome Safe Storage）+ AES-128-CBC | ✅ 已实现 |
+| Windows | Chrome 127+ 起用 **App-Bound Encryption**，密钥受 elevation 服务保护，需调 `IElevator` COM 接口 | ❌ 是另一套工程 |
+| Linux | gnome-keyring / kwallet，各发行版有差异 | ❌ 未实现 |
+
+**Windows / Linux 的手工登录步骤**（一次性，登录态可复用约一个月）：
+
+1. 用浏览器打开 https://yuanbao.tencent.com 扫码登录
+2. F12 → Application / 存储 → Cookies → 选中该域名
+3. 把 cookie 复制成 `name=value; name2=value2` 的形式
+4. 运行：`<命令> "<链接>" --cookie "粘贴的内容"`
+
 ## 开始前你需要准备什么
 
 | 需要 | 说明 |
 |---|---|
 | **一个云端 ASR 的 Key** | 把音频转成文字需要一个语音识别服务。**阿里云百炼**是最省事的一条（有免费额度，超出按量付费）。配置方法见 [`docs/backends.md`](docs/backends.md)。 |
-| **浏览器登录过元宝** | 用你日常用的浏览器打开 https://yuanbao.tencent.com 扫码登录一次即可。 |
+| **元宝登录态** | macOS 可自动从浏览器读取（首次弹一次钥匙串）；**Windows / Linux 需用 `--cookie` 手工提供**（见上）。 |
 | （Node 版）**Node ≥ 22** | 用到内置的 `fetch` / `node:sqlite` / `node:crypto`。除此之外**零依赖**。 |
-| **macOS + Chrome 系浏览器** | ⚠️ **目前只实现了在 macOS 上读取 Chrome/Edge/Brave 等浏览器的登录态**。Windows / Linux 用户请改用 `--cookie` 手工提供（见下）。 |
 
-> **不想用云端？** 也可以走本地模型（whisper.cpp），完全离线、免费，但要自己装引擎和模型，且慢得多。见 [`docs/backends.md`](docs/backends.md)。
+> **不想用云端 ASR？** 可以走本地模型（whisper.cpp），完全离线、免费，但要自己装引擎和模型，且慢得多。见 [`docs/backends.md`](docs/backends.md)。
 
 ## 快速开始
 

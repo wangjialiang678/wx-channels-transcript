@@ -108,10 +108,33 @@ function decryptValue(encrypted, key, iv) {
  * @returns {Promise<{jar: Record<string,string>, browser: string, db: string}>}
  */
 export function readBrowserCookies(requestHost, browserName = null) {
+  // ⚠️ 自动读取浏览器登录态**目前只实现了 macOS**。
+  // 原因是各平台的 cookie 加密方式完全不同，不能靠改路径解决：
+  //   macOS   → 钥匙串（Chrome Safe Storage）+ AES-128-CBC，已实现
+  //   Windows → Chrome 127+ 起用 App-Bound Encryption，密钥受 elevation 服务保护，
+  //             需要调 IElevator COM 接口才能解——是另一套工程
+  //   Linux   → gnome-keyring / kwallet 各有差异
+  // 与其给一个"看起来支持但实际报错"的假象，不如直接说清楚并给出可行的替代路径。
+  if (process.platform !== 'darwin') {
+    const label = process.platform === 'win32' ? 'Windows' : process.platform === 'linux' ? 'Linux' : process.platform;
+    throw new Error(
+      `自动读取浏览器登录态目前只支持 macOS（当前系统：${label}）。\n`
+      + '  \n'
+      + '  你仍然可以使用本工具，改用 --cookie 手工提供登录态：\n'
+      + '    1. 用浏览器打开 https://yuanbao.tencent.com 并扫码登录\n'
+      + '    2. 按 F12 打开开发者工具 → Application/存储 → Cookies\n'
+      + '    3. 把该域名下的 cookie 全部复制成 "name=value; name2=value2" 的形式\n'
+      + '    4. 运行：<命令> "<链接>" --cookie "粘贴的内容"\n'
+      + '  \n'
+      + '  详见 docs/troubleshooting.md'
+    );
+  }
+
   const browsers = detectChromiumBrowsers();
   if (browsers.length === 0) {
-    throw new Error('没有找到任何 Chromium 系浏览器（Chrome / Edge / Brave / Arc …）。'
-      + '可改用 --cookie 手工粘贴，或换一台已登录的机器。');
+    throw new Error('没有找到任何 Chromium 系浏览器（Chrome / Edge / Brave / Arc …）。\n'
+      + '  如果你确实装了，可能是 cookie 库路径变了；\n'
+      + '  也可以直接用 --cookie 手工提供登录态。');
   }
   const target = browserName
     ? browsers.find((b) => b.name === browserName)

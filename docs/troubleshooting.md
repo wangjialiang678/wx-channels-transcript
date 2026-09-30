@@ -11,6 +11,39 @@ wx-channels-transcript auth      # 登录态还有效吗
 
 ---
 
+## 平台相关
+
+### Windows / Linux 上提示「自动读取浏览器登录态目前只支持 macOS」
+
+**这不是 bug，是功能边界。**
+
+自动读取之所以只做了 macOS，是因为三家的 cookie 加密方式完全不同：
+
+| 平台 | cookie 加密 | 状态 |
+|---|---|---|
+| macOS | 钥匙串（Chrome Safe Storage）+ AES-128-CBC | ✅ 已实现 |
+| Windows | Chrome 127+ 起用 **App-Bound Encryption**——密钥受 elevation 服务保护，需要调 `IElevator` COM 接口才能解 | ❌ 是另一套工程 |
+| Linux | gnome-keyring / keyring 实现各异 | ❌ 未实现 |
+
+**工具本身完全可用**，只是要手工提供一次登录态：
+
+```bash
+# 1. 用浏览器打开 https://yuanbao.tencent.com 并扫码登录
+# 2. F12 → Application（存储）→ Cookies → 选中 yuanbao.tencent.com
+# 3. 把该域名下的 cookie 全部复制成 "name=value; name2=value2" 的形式
+# 4. 运行：
+wx-channels-transcript "<链接>" --cookie "hy_token=xxx; hy_user=yyy; ..."
+```
+
+**几个要点**：
+- 元宝的会话 cookie 实测挂在**父域 `.tencent.com`** 下，不只是 `yuanbao.tencent.com`——复制时注意别漏
+- 登录态有效期约一个月，过期后重新复制一次即可
+- 加 `--no-browser` 可以彻底禁止触碰浏览器（避免在 macOS 之外的环境里反复尝试）
+
+**想彻底不碰浏览器**：也可以用 `-t local` 走本地 whisper 模型，全程离线（但仍需 cookie 才能解析视频号链接——因为那是腾讯侧的鉴权）。
+
+---
+
 ## 登录态相关
 
 ### 报「在 chrome 里没有找到 yuanbao.tencent.com 的 cookie」

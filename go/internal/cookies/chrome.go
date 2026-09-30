@@ -26,6 +26,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	_ "modernc.org/sqlite" // 纯 Go 的 SQLite 驱动，无需 cgo
@@ -291,10 +292,35 @@ func copyFile(src, dst string) error {
 
 // ReadBrowserCookies 是一个便利入口：不关心是哪个浏览器时用它。
 func ReadBrowserCookies(requestHost, browserName string) (Jar, string, error) {
+	// ⚠️ 自动读取浏览器登录态**目前只实现了 macOS**。
+	// 各平台的 cookie 加密方式完全不同，不是改个路径就能解决的：
+	//   macOS   → 钥匙串（Chrome Safe Storage）+ AES-128-CBC，已实现
+	//   Windows → Chrome 127+ 起用 App-Bound Encryption，密钥受 elevation 服务保护，
+	//             需要调 IElevator COM 接口——是另一套工程
+	//   Linux   → gnome-keyring / kwallet 各有差异
+	// 与其给一个"看起来支持但实际报错"的假象，不如直接说清楚并给出可行的替代路径。
+	if runtime.GOOS != "darwin" {
+		label := runtime.GOOS
+		switch runtime.GOOS {
+		case "windows":
+			label = "Windows"
+		case "linux":
+			label = "Linux"
+		}
+		return nil, "", fmt.Errorf(
+			"自动读取浏览器登录态目前只支持 macOS（当前系统：%s）。\n"+
+				"  你仍然可以使用本工具，改用 --cookie 手工提供登录态：\n"+
+				"    1. 用浏览器打开 https://yuanbao.tencent.com 并扫码登录\n"+
+				"    2. 按 F12 打开开发者工具 → Application/存储 → Cookies\n"+
+				"    3. 把该域名下的 cookie 全部复制成 \"name=value; name2=value2\" 的形式\n"+
+				"    4. 运行：wx-channels-transcript \"<链接>\" --cookie \"粘贴的内容\"\n"+
+				"  详见 docs/troubleshooting.md", label)
+	}
+
 	browsers := DetectBrowsers()
 	if len(browsers) == 0 {
 		return nil, "", fmt.Errorf("没有找到任何 Chromium 系浏览器（Chrome / Edge / Brave / Arc …）。" +
-			"可改用 --cookie 手工粘贴，或换一台已登录的机器")
+			"如果你确实装了，可能是 cookie 库路径变了；也可以直接用 --cookie 手工提供登录态")
 	}
 	target := browsers[0]
 	if browserName != "" {
