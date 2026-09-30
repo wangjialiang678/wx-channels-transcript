@@ -1,0 +1,29 @@
+# 编译产物
+go/sph
+go/wx-channels-transcript
+go/wx-channels-transcript.exe
+*.exe
+
+# Go 测试/覆盖率
+*.test
+*.out
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# 默认输出目录
+transcripts/
+
+# 临时文件
+*.tmp
+*.log
+
+# 本地凭据（绝不要提交）
+.env
+.env.local
+*.local
+
+# macOS
+.DS_Store

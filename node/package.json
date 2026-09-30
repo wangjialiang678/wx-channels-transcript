@@ -1,0 +1,28 @@
+{
+  "name": "wx-channels-transcript",
+  "version": "0.3.0",
+  "description": "微信视频号 (Weixin Channels) → 逐字稿。零依赖，一条命令。",
+  "type": "module",
+  "bin": {
+    "wx-channels-transcript": "bin/sph.mjs"
+  },
+  "scripts": {
+    "scan": "node bin/sph.mjs scan",
+    "backends": "node bin/sph.mjs backends"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "weixin-channels",
+    "wechat-channels",
+    "视频号",
+    "transcript",
+    "逐字稿",
+    "asr",
+    "speech-to-text"
+  ],
+  "license": "MIT",
+  "private": false,
+  "dependencies": {}
+}
